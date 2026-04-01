@@ -1,6 +1,8 @@
 package com.example.BookWhiz.config.cache;
 
 import com.example.BookWhiz.dto.SeatUpdate;
+
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -8,6 +10,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
+@Lazy
 public class SeatLockExpiryListener extends KeyExpirationEventMessageListener {
 
     private final SimpMessagingTemplate messagingTemplate;
