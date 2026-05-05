@@ -1,6 +1,7 @@
 package com.example.BookWhiz.controller;
 
 import com.example.BookWhiz.dto.request.ShowRequest;
+import com.example.BookWhiz.dto.response.ShowResponse;
 import com.example.BookWhiz.model.venue.Venue;
 import com.example.BookWhiz.service.ShowService;
 import com.example.BookWhiz.service.VenueService;
@@ -9,7 +10,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.PrintWriter;
@@ -177,7 +177,6 @@ public class PartnerVenueController {
     }
 
     @PutMapping("/shows/{id}")
-    @Transactional
     public ResponseEntity<?> updateShow(@PathVariable Long id,
                                         @RequestBody ShowRequest req,
                                         Authentication auth) {

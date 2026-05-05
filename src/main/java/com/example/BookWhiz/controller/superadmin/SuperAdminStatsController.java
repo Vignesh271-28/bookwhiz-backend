@@ -131,35 +131,33 @@ public class SuperAdminStatsController {
         if ("daily".equalsIgnoreCase(period)) {
             sql = """
                 SELECT
-                    DATE_FORMAT(DATE(COALESCE(confirmed_at, locked_at)), '%d %b') AS label,
-                    YEAR(DATE(COALESCE(confirmed_at, locked_at)))     AS yr,
-                    DAYOFYEAR(DATE(COALESCE(confirmed_at, locked_at))) AS mo,
-                    COALESCE(SUM(total_price), 0)                     AS revenue,
-                    COUNT(*)                                           AS bookings
+                    DATE_FORMAT(COALESCE(confirmed_at, locked_at), '%d %b') AS label,
+                    YEAR(COALESCE(confirmed_at, locked_at))     AS yr,
+                    DAYOFYEAR(COALESCE(confirmed_at, locked_at)) AS mo,
+                    COALESCE(SUM(total_price), 0)               AS revenue,
+                    COUNT(*)                                     AS bookings
                 FROM bookings
                 WHERE status = 'CONFIRMED'
-                  AND COALESCE(confirmed_at, locked_at) >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-                GROUP BY DATE(COALESCE(confirmed_at, locked_at)),
-                         YEAR(DATE(COALESCE(confirmed_at, locked_at))),
-                         DAYOFYEAR(DATE(COALESCE(confirmed_at, locked_at)))
-                ORDER BY yr ASC, mo ASC
+                  AND COALESCE(confirmed_at, locked_at) >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+                GROUP BY DATE(COALESCE(confirmed_at, locked_at))
+                ORDER BY DATE(COALESCE(confirmed_at, locked_at)) ASC
                 """;
             limit = 30;
         } else if ("weekly".equalsIgnoreCase(period)) {
             sql = """
                 SELECT
-                    CONCAT('W', LPAD(WEEK(COALESCE(confirmed_at, locked_at), 1), 2, '0'),
+                    CONCAT('W', WEEK(COALESCE(confirmed_at, locked_at)),
                            ' ', YEAR(COALESCE(confirmed_at, locked_at))) AS label,
-                    YEAR(COALESCE(confirmed_at, locked_at))              AS yr,
-                    WEEK(COALESCE(confirmed_at, locked_at), 1)           AS mo,
-                    COALESCE(SUM(total_price), 0)                        AS revenue,
-                    COUNT(*)                                              AS bookings
+                    YEAR(COALESCE(confirmed_at, locked_at)) AS yr,
+                    WEEK(COALESCE(confirmed_at, locked_at)) AS mo,
+                    COALESCE(SUM(total_price), 0)           AS revenue,
+                    COUNT(*)                                 AS bookings
                 FROM bookings
                 WHERE status = 'CONFIRMED'
-                  AND COALESCE(confirmed_at, locked_at) >= DATE_SUB(CURDATE(), INTERVAL 12 WEEK)
+                  AND COALESCE(confirmed_at, locked_at) >= DATE_SUB(NOW(), INTERVAL 12 WEEK)
                 GROUP BY yr, mo
                 ORDER BY yr ASC, mo ASC
-                """;;
+                """;
             limit = 12;
         } else {
             sql = """

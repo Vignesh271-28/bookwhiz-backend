@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
@@ -16,8 +15,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Modifying
     @Query("DELETE FROM Payment p WHERE p.booking.id IN :bookingIds")
     void deleteByBookingIdIn(@Param("bookingIds") List<Long> bookingIds);
-
-    Optional<Payment> findByBookingId(Long id);
 
     // (keep all your existing methods below)
 }
