@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,11 +34,30 @@ public class PaymentService {
         this.seatLockService = seatLockService;
     }
 
+    @Transactional
     public Payment initiatePayment(Booking booking) {
+
+        // ✅ Fix 1: Return existing payment if already initiated (prevents duplicate key error)
+        Optional<Payment> existing = paymentRepository.findByBookingId(booking.getId());
+        if (existing.isPresent()) {
+            Payment p = existing.get();
+            // If already succeeded, don't allow re-initiation
+            if (p.getStatus() == PaymentStatus.SUCCESS) {
+                throw new IllegalStateException(
+                    "Payment already completed for booking #" + booking.getId());
+            }
+            // Return the existing INITIATED payment so frontend can retry
+            return p;
+        }
+
+        // ✅ Fix 2: Use actual booking total price instead of hardcoded * 200
+        double amount = booking.getTotalPrice() != null
+            ? booking.getTotalPrice()
+            : booking.getSeats().size() * 200.0; // fallback only
 
         Payment payment = new Payment();
         payment.setBooking(booking);
-        payment.setAmount(booking.getSeats().size() * 200.0);
+        payment.setAmount(amount);
         payment.setStatus(PaymentStatus.INITIATED);
         payment.setGatewayPaymentId(UUID.randomUUID().toString());
         payment.setCreatedAt(LocalDateTime.now());
@@ -67,21 +87,19 @@ public class PaymentService {
             throw new IllegalStateException("Booking not in LOCKED state");
         }
 
-        // 1️⃣ Update DB state
+        // Update DB state
         payment.setStatus(PaymentStatus.SUCCESS);
         booking.setStatus(BookingStatus.CONFIRMED);
 
         bookingRepository.save(booking);
         paymentRepository.save(payment);
 
-        // 2️⃣ Unlock Redis seats AFTER DB success
+        // Unlock Redis seats AFTER DB success
         Long showId = booking.getShow().getId();
-
         List<Long> seatIds = booking.getSeats()
                 .stream()
                 .map(Seat::getId)
                 .toList();
-
         seatLockService.unlockSeats(showId, seatIds);
 
         return payment;

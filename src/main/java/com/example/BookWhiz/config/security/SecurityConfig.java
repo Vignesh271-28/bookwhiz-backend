@@ -75,8 +75,8 @@ public class SecurityConfig {
                 // ── Custom Roles ─────────────────────────────────────
                 .requestMatchers("/api/roles/public").permitAll()
                 .requestMatchers("/api/roles/me").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/superadmin/roles/**").hasAnyRole("SUPER_ADMIN", "ADMIN")
                 .requestMatchers("/api/superadmin/roles/**").hasRole("SUPER_ADMIN")
-
                 // ── SUPERADMIN — specific rules BEFORE the catch-all ──
                 // Approval requests — ADMIN read, SUPER_ADMIN write
                 .requestMatchers(HttpMethod.GET,  "/api/superadmin/requests/**")
